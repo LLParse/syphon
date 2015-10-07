@@ -25,6 +25,7 @@ install_mesos() {
     echo "0.0.0.0" > "/etc/mesos-$mode/ip"
     echo 'docker,mesos' > /etc/mesos-slave/containerizers
     echo '5mins' > /etc/mesos-slave/executor_registration_timeout
+    echo 'ports:[8000-9000,31000-32000]' > /etc/mesos-slave/resources
 
     if [ $mode == "master" ]; then
         ln -s /lib/init/upstart-job /etc/init.d/mesos-master
@@ -85,7 +86,7 @@ if [[ "$mode" = "master" ]]; then
     export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
 
     # Building and running Marathon
-    wget http://downloads.mesosphere.com/marathon/v0.9.0/marathon-0.9.0.tgz -O /opt/marathon-0.9.0.tgz
+    wget -q http://downloads.mesosphere.com/marathon/v0.9.0/marathon-0.9.0.tgz -O /opt/marathon-0.9.0.tgz
     tar xzf /opt/marathon-0.9.0.tgz -C /opt
     cd /opt/marathon-0.9.0
     ./bin/start --master zk://master:2181/mesos --zk zk://master:2181/marathon --task_launch_timeout 300000 1> marathon.out 2> marathon.err &
