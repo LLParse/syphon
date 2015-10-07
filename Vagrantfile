@@ -47,6 +47,24 @@ Vagrant.configure(2) do |config|
     v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
   end
 
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+  end
+
+  (0..SLAVES-1).each do |i|
+    config.vm.define "slave#{i}" do |slave|
+      slave.vm.provider "virtualbox" do |v|
+        v.memory = 2048
+        v.cpus = 2
+      end
+
+      slave.vm.hostname = "slave#{i}"
+      slave.vm.network :private_network, ip: NODES[slave.vm.hostname]
+      slave.vm.network "forwarded_port", guest: 5051, host: 5051, auto_correct: true
+      slave.vm.provision "shell", path: "init.sh", args: "slave"
+    end
+  end
+
   config.vm.define "master" do |master|
     master.vm.provider "virtualbox" do |v|
       v.memory = 1024
@@ -68,17 +86,4 @@ Vagrant.configure(2) do |config|
     master.vm.provision "shell", path: "init.sh", args: "master"
   end
 
-  (0..SLAVES-1).each do |i|
-    config.vm.define "slave#{i}" do |slave|
-      slave.vm.provider "virtualbox" do |v|
-        v.memory = 2048
-        v.cpus = 2
-      end
-
-      slave.vm.hostname = "slave#{i}"
-      slave.vm.network :private_network, ip: NODES[slave.vm.hostname]
-      slave.vm.network "forwarded_port", guest: 5051, host: 5051, auto_correct: true
-      slave.vm.provision "shell", path: "init.sh", args: "slave"
-    end
-  end
 end
